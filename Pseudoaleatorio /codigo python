@@ -1,0 +1,172 @@
+"""
+Generadores de Números Pseudoaleatorios
+=========================================
+ 
+Implementación de 4 métodos clásicos:
+  1. Cuadrados Medios       (Middle Square Method)
+  2. Productos Medios       (Middle Product Method)
+  3. Multiplicador Constante (Constant Multiplier Method)
+  4. Congruencial Lineal    (Linear Congruential Method)
+ 
+Cada función recibe los parámetros necesarios y devuelve la lista de
+números pseudoaleatorios Ri (entre 0 y 1).
+"""
+ 
+from typing import List
+ 
+ 
+# ---------------------------------------------------------------------
+# Función auxiliar
+# ---------------------------------------------------------------------
+def extraer_digitos_centrales(numero: int, cantidad_digitos: int) -> int:
+    """
+    Extrae los dígitos centrales de un número, rellenando con ceros
+    a la izquierda si el número tiene menos cifras de las esperadas.
+    """
+    numero_str = str(numero).zfill(cantidad_digitos * 2)
+    inicio = (len(numero_str) - cantidad_digitos) // 2
+    return int(numero_str[inicio:inicio + cantidad_digitos])
+ 
+ 
+# ---------------------------------------------------------------------
+# 1. Cuadrados Medios
+# ---------------------------------------------------------------------
+def cuadrados_medios(semilla: int, cantidad: int, digitos: int = 4) -> List[float]:
+    """
+    Eleva al cuadrado la semilla y toma los dígitos centrales como el
+    siguiente número pseudoaleatorio (y como nueva semilla).
+    """
+    resultados = []
+    x = semilla
+    for _ in range(cantidad):
+        cuadrado = x ** 2
+        x = extraer_digitos_centrales(cuadrado, digitos)
+        ri = x / (10 ** digitos)
+        resultados.append(ri)
+    return resultados
+ 
+ 
+# ---------------------------------------------------------------------
+# 2. Productos Medios
+# ---------------------------------------------------------------------
+def productos_medios(semilla1: int, semilla2: int, cantidad: int, digitos: int = 4) -> List[float]:
+    """
+    Multiplica dos semillas y toma los dígitos centrales del producto.
+    Luego desliza las semillas: (x0, x1) -> (x1, nuevo).
+    """
+    resultados = []
+    x0, x1 = semilla1, semilla2
+    for _ in range(cantidad):
+        producto = x0 * x1
+        nuevo = extraer_digitos_centrales(producto, digitos)
+        ri = nuevo / (10 ** digitos)
+        resultados.append(ri)
+        x0, x1 = x1, nuevo
+    return resultados
+ 
+ 
+# ---------------------------------------------------------------------
+# 3. Multiplicador Constante
+# ---------------------------------------------------------------------
+def multiplicador_constante(semilla: int, constante: int, cantidad: int, digitos: int = 4) -> List[float]:
+    """
+    Multiplica la semilla por una constante fija y toma los dígitos
+    centrales del producto en cada iteración.
+    """
+    resultados = []
+    x = semilla
+    for _ in range(cantidad):
+        producto = x * constante
+        x = extraer_digitos_centrales(producto, digitos)
+        ri = x / (10 ** digitos)
+        resultados.append(ri)
+    return resultados
+ 
+ 
+# ---------------------------------------------------------------------
+# 4. Congruencial Lineal
+# ---------------------------------------------------------------------
+def congruencial_lineal(semilla: int, a: int, c: int, m: int, cantidad: int) -> List[float]:
+    """
+    X(n+1) = (a * X(n) + c) mod m
+    Ri = X(n+1) / m
+    """
+    resultados = []
+    x = semilla
+    for _ in range(cantidad):
+        x = (a * x + c) % m
+        ri = x / m
+        resultados.append(ri)
+    return resultados
+ 
+ 
+# ---------------------------------------------------------------------
+# Utilidad para mostrar resultados
+# ---------------------------------------------------------------------
+def mostrar_resultados(nombre_metodo: str, numeros: List[float]) -> None:
+    print(f"\n--- {nombre_metodo} ---")
+    for i, ri in enumerate(numeros, start=1):
+        print(f"  R{i} = {ri:.4f}")
+ 
+ 
+# ---------------------------------------------------------------------
+# Menú principal (usa match-case, el "switch" de Python 3.10+)
+# ---------------------------------------------------------------------
+def menu() -> None:
+    opciones = """
+==========================================
+   GENERADOR DE NÚMEROS PSEUDOALEATORIOS
+==========================================
+1. Cuadrados Medios
+2. Productos Medios
+3. Multiplicador Constante
+4. Congruencial Lineal
+0. Salir
+"""
+    while True:
+        print(opciones)
+        opcion = input("Elige un método (0-4): ").strip()
+ 
+        match opcion:
+            case "1":
+                semilla = int(input("Semilla (ej. 5735): "))
+                cantidad = int(input("Cantidad de números a generar: "))
+                digitos = int(input("Cantidad de dígitos (Enter = 4): ") or 4)
+                resultados = cuadrados_medios(semilla, cantidad, digitos)
+                mostrar_resultados("Cuadrados Medios", resultados)
+ 
+            case "2":
+                semilla1 = int(input("Primera semilla: "))
+                semilla2 = int(input("Segunda semilla: "))
+                cantidad = int(input("Cantidad de números a generar: "))
+                digitos = int(input("Cantidad de dígitos (Enter = 4): ") or 4)
+                resultados = productos_medios(semilla1, semilla2, cantidad, digitos)
+                mostrar_resultados("Productos Medios", resultados)
+ 
+            case "3":
+                semilla = int(input("Semilla: "))
+                constante = int(input("Constante multiplicadora: "))
+                cantidad = int(input("Cantidad de números a generar: "))
+                digitos = int(input("Cantidad de dígitos (Enter = 4): ") or 4)
+                resultados = multiplicador_constante(semilla, constante, cantidad, digitos)
+                mostrar_resultados("Multiplicador Constante", resultados)
+ 
+            case "4":
+                semilla = int(input("Semilla (X0): "))
+                a = int(input("Multiplicador (a): "))
+                c = int(input("Incremento (c): "))
+                m = int(input("Módulo (m): "))
+                cantidad = int(input("Cantidad de números a generar: "))
+                resultados = congruencial_lineal(semilla, a, c, m, cantidad)
+                mostrar_resultados("Congruencial Lineal", resultados)
+ 
+            case "0":
+                print("¡Hasta luego!")
+                break
+ 
+            case _:
+                print("Opción inválida, intenta de nuevo.")
+ 
+ 
+if __name__ == "__main__":
+    menu()
